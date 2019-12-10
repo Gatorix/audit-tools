@@ -1,0 +1,2 @@
+SELECT * FROM "期初余额"
+WHERE "科目代码" LIKE "122101%"

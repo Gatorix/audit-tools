@@ -1,0 +1,20 @@
+{
+    "python.pythonPath": "C:\\Users\\Gatorix\\AppData\\Local\\Programs\\Python\\Python38-32\\python.exe",
+    "sqltools.connections": [
+        {
+            "database": "master",
+            "dialect": "MSSQL",
+            "name": "localhost",
+            "password": "xx123456",
+            "port": 1433,
+            "server": "localhost",
+            "username": "sa"
+        },
+        {
+            "database": "${workspaceFolder}\\test.db",
+            "dialect": "SQLite",
+            "name": "test"
+        }
+    ],
+    "sqltools.useNodeRuntime": true
+}
