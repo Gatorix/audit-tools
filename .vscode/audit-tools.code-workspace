@@ -1,0 +1,25 @@
+{
+	"folders": [
+		{
+			"path": "D:\\audit-tools"
+		}
+	],
+	"settings": {
+		"sqltools.connections": [
+			{
+				"database": "master",
+				"dialect": "MSSQL",
+				"name": "localhost",
+				"password": "xx123456",
+				"port": 1433,
+				"server": "localhost",
+				"username": "sa"
+			},
+			{
+				"database": "D:\\db\\test.db",
+				"dialect": "SQLite",
+				"name": "test"
+			}
+		]
+	}
+}
