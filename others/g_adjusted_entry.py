@@ -5,12 +5,14 @@ import msvcrt
 import win32com.client as win32
 import numpy
 import glob
+import inspect
 
 
 def write_header_line(sheet):
-    header_line = [u'摘要', u'抵消编码', u'科目名称', u'借方金额', u'贷方金额']
+    header_line = [u'摘要', u'抵消编码', u'科目名称', u'借方金额', u'贷方金额', u'差异']
     for i in range(len(header_line)):
         sheet.write(0, i, header_line[i])
+
 
 def write_list_nonformat(sheet, rows, cols, in_list):  # 写入list
     for i in range(rows):
@@ -19,9 +21,9 @@ def write_list_nonformat(sheet, rows, cols, in_list):  # 写入list
 
 def write_list(sheet, rows, cols, in_list):  # 写入list
     style = xlwt.XFStyle()
-    style.num_format_str = '#,##0.00'
+    style.num_format_str = '_ * #,##0.00_ ;_ * -#,##0.00_ ;_ * "-"??_ ;_ @_ '
     for i in range(rows):
-        sheet.write(i+1, cols, in_list[i],style)
+        sheet.write(i+1, cols, in_list[i], style)
 
 
 def generate_abst(nrows_Data, corp_sn, o_corp_sn):  # 拼接摘要字段
@@ -67,12 +69,12 @@ def get_col_value(sheet, col, start_row):  # 获取表格列值
 
 
 def exit_with_anykey():
-    print("按任意键退出...")
+    print("按任意键退出")
     ord(msvcrt.getch())
     os._exit(1)
 
 
-def formatXLS(filepath):  # 转换为xls格式
+def formatXLS(filepath):  # 转换为xlsx格式
     excel = win32.gencache.EnsureDispatch('Excel.Application')
     wb = excel.Workbooks.Open(filepath)
 
@@ -141,15 +143,17 @@ d_list = numpy.delete(n_list, [3, 4], axis=1).tolist()  # 删除无用字段
 print('按抵消编码和借贷方排序……')
 f_list = sorted(d_list, key=lambda x: (x[1], x[4]))  # 按抵消编码和借贷方排序
 
-l_summary = numpy.array([x[0] for x in f_list],dtype=str).tolist()  # 取出摘要列
-l_elimination_no=numpy.array([x[1] for x in f_list],dtype=int).tolist()
-l_account_name=numpy.array([x[2] for x in f_list],dtype=str).tolist()
-l_c_amount=numpy.array([x[3] for x in f_list],dtype=float).tolist()
-l_d_amount=numpy.array([x[4] for x in f_list],dtype=float).tolist()
+l_summary = numpy.array([x[0] for x in f_list],
+                        dtype=str).tolist()  # 为不改变数值类型，曲线救国
+l_elimination_no = numpy.array([x[1] for x in f_list], dtype=int).tolist()
+l_account_name = numpy.array([x[2] for x in f_list], dtype=str).tolist()
+l_c_amount = numpy.array([x[3] for x in f_list], dtype=float).tolist()
+l_d_amount = numpy.array([x[4] for x in f_list], dtype=float).tolist()
 
-val_list=[l_account_name,l_c_amount,l_d_amount]
 
-print('创建"往来抵消分录.xls"')
+val_list = [l_account_name, l_c_amount, l_d_amount]
+
+print('创建调整分录表……')
 workbook_w = xlwt.Workbook()  # 创建文件
 
 sheet_intercourse_elimination_entry = workbook_w.add_sheet(
@@ -158,19 +162,45 @@ sheet_intercourse_elimination_entry = workbook_w.add_sheet(
 write_header_line(sheet_intercourse_elimination_entry)
 print("写入调整分录……")
 
-write_list_nonformat(sheet_intercourse_elimination_entry,nrows_Data,0,l_summary)
-write_list_nonformat(sheet_intercourse_elimination_entry,nrows_Data,1,l_elimination_no)
+write_list_nonformat(sheet_intercourse_elimination_entry,
+                     nrows_Data, 0, l_summary)
+write_list_nonformat(sheet_intercourse_elimination_entry,
+                     nrows_Data, 1, l_elimination_no)
 for i in range(len(val_list)):
-    write_list(sheet_intercourse_elimination_entry,nrows_Data,i+2,val_list[i])
+    write_list(sheet_intercourse_elimination_entry,
+               nrows_Data, i+2, val_list[i])
+
+
+print('检查借贷金额……')
+l_formula_str = []
+for i in range(nrows_Data):
+    l_formula_str.append('SUMIF($B$2:$B$'+str(nrows_Data+1)+',B'+str(i+2)+',$D$2:$D$' + str(nrows_Data+1)+')-SUMIF($B$2:$B$'+str(nrows_Data+1) +
+                         ',B'+str(i+2)+',$E$2:$E$'+str(nrows_Data+1)+')')
+
+
+for x in range(nrows_Data):
+    style = xlwt.XFStyle()
+    style.num_format_str = '_ * #,##0.00_ ;_ * -#,##0.00_ ;_ * "-"??_ ;_ @_ '
+
+    sheet_intercourse_elimination_entry.write(
+        x+1, 5, xlwt.Formula(l_formula_str[x]), style)
+
+
+# write_formula(sheet_intercourse_elimination_entry, nrows_Data, 5, formula_str)
 
 output_filename = "往来抵消分录.xls"
-
+print("保存文件……")
 try:
     workbook_w.save(output_filename)  # 保存文件
 except PermissionError:
     print('错误：文件保存失败,关闭输出文件后重试')
     exit_with_anykey()
-# formatXLS("D:\\audit-tools\\往来抵消分录.xls")
-# os.remove("D:\\audit-tools\\往来抵消分录.xls")
+print("转换文件格式……")
+
+current_path = os.path.abspath(__file__)
+father_path = os.path.abspath(os.path.dirname(current_path) + os.path.sep + ".")
+
+formatXLS(father_path+"\\往来抵消分录.xls")
+os.remove(r"./往来抵消分录.xls")
 print("完成")
 exit_with_anykey()
