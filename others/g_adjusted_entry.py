@@ -164,6 +164,7 @@ l_account_name = numpy.array([x[2] for x in i_list], dtype=str).tolist()
 l_c_amount = numpy.array([x[3] for x in i_list], dtype=float).tolist()
 l_d_amount = numpy.array([x[4] for x in i_list], dtype=float).tolist()
 
+len_i_list=len(l_summary)
 
 val_list = [l_account_name, l_c_amount, l_d_amount]
 
@@ -177,30 +178,27 @@ write_header_line(sheet_intercourse_elimination_entry)
 print("写入调整分录……")
 
 write_list_nonformat(sheet_intercourse_elimination_entry,
-                     len(l_summary), 0, l_summary)
+                     len_i_list, 0, l_summary)
 write_list_nonformat(sheet_intercourse_elimination_entry,
-                     len(l_summary), 1, l_elimination_no)
+                     len_i_list, 1, l_elimination_no)
 for i in range(len(val_list)):
     write_list(sheet_intercourse_elimination_entry,
-               len(l_summary), i+2, val_list[i])
+               len_i_list, i+2, val_list[i])
 
 
 print('检查借贷金额……')
 l_formula_str = []
-for i in range(len(l_summary)):
-    l_formula_str.append('SUMIF($B$2:$B$'+str(nrows_Data+1)+',B'+str(i+2)+',$D$2:$D$' + str(nrows_Data+1)+')-SUMIF($B$2:$B$'+str(nrows_Data+1) +
-                         ',B'+str(i+2)+',$E$2:$E$'+str(nrows_Data+1)+')')
+for i in range(len_i_list):
+    l_formula_str.append('SUMIF($B$2:$B$'+str(len_i_list+1)+',B'+str(i+2)+',$D$2:$D$' + str(len_i_list+1)+')-SUMIF($B$2:$B$'+str(len_i_list+1) +
+                         ',B'+str(i+2)+',$E$2:$E$'+str(len_i_list+1)+')')
 
+style = xlwt.XFStyle()
+style.num_format_str = '_ * #,##0.00_ ;_ * -#,##0.00_ ;_ * "-"??_ ;_ @_ '
 
-for x in range(len(l_summary)):
-    style = xlwt.XFStyle()
-    style.num_format_str = '_ * #,##0.00_ ;_ * -#,##0.00_ ;_ * "-"??_ ;_ @_ '
-
+for x in range(len_i_list):
     sheet_intercourse_elimination_entry.write(
         x+1, 5, xlwt.Formula(l_formula_str[x]), style)
 
-
-# write_formula(sheet_intercourse_elimination_entry, nrows_Data, 5, formula_str)
 
 output_filename = "往来抵消分录.xls"
 print("保存文件……")
