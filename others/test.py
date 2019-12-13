@@ -17,20 +17,33 @@
 #     functionB()
 # print("after __name__ guard")
 
-li = ['qqq', '111', '1qw', '222']
-print(li)
-n_li=[]
-try:
-    n_li=list(map(int,li))
-except ValueError:
-    
+# li = ['qqq', '111', '1qw', '222']
+# print(li)
+# n_li=[]
+# try:
+#     n_li=list(map(int,li))
+# except ValueError:
+
 # for x in range(len(li)):
 #     for y in range(len(li[x])):
 #         n_li.append(li[x][y])
 #         # if y == 1:
-            
+
 #         #     n_li.append(int(li[x][y]))
 
 
+# li = [
+#     ['1', '1', '2'],
+#     ['1', '1', '2'],
+#     ['1', '1', '2'],
+#     ['1', '1', '2'],
+#     ['1', '1', '5'],
+#     ['1', '1', '5'],
+#     ['1', '1', '8'],
+#     ['1', '1', '8']
+# ]
 
-print(n_li)
+
+
+# insert_blank_line()
+# print(n_li)

@@ -8,6 +8,18 @@ import glob
 import inspect
 
 
+def insert_blank_line(li, x, insert_list):
+    '对二维列表相同行下面插入一个空行，li是需要操作的二维表，x是判断相同行的元素在行中的位置'
+    n_li = []
+    for i in range(1, len(li)):
+
+        n_li.append(li[i-1])
+        if li[i][x] != li[i-1][x]:
+            n_li.append(insert_list)
+    n_li.append(li[-1])
+    return n_li
+
+
 def write_header_line(sheet):
     header_line = [u'摘要', u'抵消编码', u'科目名称', u'借方金额', u'贷方金额', u'差异']
     for i in range(len(header_line)):
@@ -125,7 +137,7 @@ o_list = []
 for i in range(nrows_Data):  # 遍历各字段列表，按顺序合成新列表
     o_list.append(abst[i])
     if elimination_no[i] == "":
-        o_list.append("0")
+        o_list.append("None")
     else:
         o_list.append(int(elimination_no[i]))
     o_list.append(account_name[i])
@@ -142,13 +154,15 @@ print('删除无用字段……')
 d_list = numpy.delete(n_list, [3, 4], axis=1).tolist()  # 删除无用字段
 print('按抵消编码和借贷方排序……')
 f_list = sorted(d_list, key=lambda x: (x[1], x[4]))  # 按抵消编码和借贷方排序
+insert_list = ['', '', '', '0', '0', ]
+i_list = insert_blank_line(f_list, 1, insert_list)
 
-l_summary = numpy.array([x[0] for x in f_list],
+l_summary = numpy.array([x[0] for x in i_list],
                         dtype=str).tolist()  # 为不改变数值类型，曲线救国
-l_elimination_no = numpy.array([x[1] for x in f_list], dtype=int).tolist()
-l_account_name = numpy.array([x[2] for x in f_list], dtype=str).tolist()
-l_c_amount = numpy.array([x[3] for x in f_list], dtype=float).tolist()
-l_d_amount = numpy.array([x[4] for x in f_list], dtype=float).tolist()
+l_elimination_no = numpy.array([x[1] for x in i_list], dtype=str).tolist()
+l_account_name = numpy.array([x[2] for x in i_list], dtype=str).tolist()
+l_c_amount = numpy.array([x[3] for x in i_list], dtype=float).tolist()
+l_d_amount = numpy.array([x[4] for x in i_list], dtype=float).tolist()
 
 
 val_list = [l_account_name, l_c_amount, l_d_amount]
@@ -163,22 +177,22 @@ write_header_line(sheet_intercourse_elimination_entry)
 print("写入调整分录……")
 
 write_list_nonformat(sheet_intercourse_elimination_entry,
-                     nrows_Data, 0, l_summary)
+                     len(l_summary), 0, l_summary)
 write_list_nonformat(sheet_intercourse_elimination_entry,
-                     nrows_Data, 1, l_elimination_no)
+                     len(l_summary), 1, l_elimination_no)
 for i in range(len(val_list)):
     write_list(sheet_intercourse_elimination_entry,
-               nrows_Data, i+2, val_list[i])
+               len(l_summary), i+2, val_list[i])
 
 
 print('检查借贷金额……')
 l_formula_str = []
-for i in range(nrows_Data):
+for i in range(len(l_summary)):
     l_formula_str.append('SUMIF($B$2:$B$'+str(nrows_Data+1)+',B'+str(i+2)+',$D$2:$D$' + str(nrows_Data+1)+')-SUMIF($B$2:$B$'+str(nrows_Data+1) +
                          ',B'+str(i+2)+',$E$2:$E$'+str(nrows_Data+1)+')')
 
 
-for x in range(nrows_Data):
+for x in range(len(l_summary)):
     style = xlwt.XFStyle()
     style.num_format_str = '_ * #,##0.00_ ;_ * -#,##0.00_ ;_ * "-"??_ ;_ @_ '
 
