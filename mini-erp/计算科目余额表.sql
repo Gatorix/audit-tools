@@ -1,4 +1,4 @@
-CREATE TABLE "科目余额表11" AS
+CREATE TABLE "科目余额表" AS
 SELECT 
 "期初余额"."科目代码",
 "期初余额"."科目名称",

@@ -1,0 +1,27 @@
+{
+    "sqltools.connections": [
+        {
+            "database": "master",
+            "dialect": "MSSQL",
+            "name": "localhost",
+            "password": "xx123456",
+            "port": 1433,
+            "server": "localhost",
+            "username": "sa"
+        },
+        {
+            "database": "prostgres",
+            "dialect": "PostgreSQL",
+            "name": "pg",
+            "password": "XX123456",
+            "port": 5432,
+            "server": "localhost",
+            "username": "prostgres"
+        },
+        {
+            "database": "D:\\db\\100_海能达通信股份有限公司.db",
+            "dialect": "SQLite",
+            "name": "100"
+        }
+    ]
+}
