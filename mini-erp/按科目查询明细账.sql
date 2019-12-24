@@ -8,7 +8,6 @@ SELECT
 "本币借方",
 "本币贷方"
 from "科目明细账"
-WHERE "科目代码" like "60010101"
+WHERE "科目代码" like "6301%"
 AND "入账日期" like "2019%"
-GROUP by "往来单位名称"
 ORDER by "本币贷方" DESC
