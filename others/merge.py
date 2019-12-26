@@ -6,13 +6,14 @@ import win32com.client as win32
 import numpy as np
 import pandas as pd
 import glob
+import openpyxl
 
 
 class Merge():
     def __init__(self):
-        self.format_str = '_ * #,##0.00_ ;_ * -#,##0.00_ ;_ * "-"??_ ;_ @_ '
         self.rdfilepath = glob.glob(r"./*试算表*.xls*")
         self.head_line = [u'科目代码', u'科目名称', u'期初余额', u'借方金额', u'贷方金额', u'期末余额']
+        self.rd1filepath = glob.glob(r"./*科目余额表*.xls*")
 
     def exit_with_anykey(self):
         print("按任意键退出")
@@ -72,7 +73,7 @@ class Merge():
             try:
                 format_list.append(float(num_list[i]))
             except ValueError:
-                print("试算表中'期初余额'、'借项'、'贷项'或'期末余额'字段中含有非数值，确认后重试")
+                print("源表中'期初余额'、'借项'、'贷项'或'期末余额'字段中含有非数值，确认后重试")
                 self.exit_with_anykey()
         return format_list
 
@@ -131,17 +132,23 @@ class Merge():
 
     def main_function(self):
         try:
-            print('检查往来核对表……')
+            print('检查文件路径……')
+            print('打开试算表……')
             self.workbook_r = xlrd.open_workbook(self.rdfilepath[0])  # 打开工作簿
             self.sheet_o_tb = self.workbook_r.sheet_by_index(0)  # 打开工作表
-            self.nrows = self.sheet_o_tb.nrows-1  # 获取有效数据行数
+            print(self.sheet_o_tb)
+
         except FileNotFoundError:
             print('错误：未找到文件，确认后重试')
             self.exit_with_anykey()
         except PermissionError:
             print('错误：没有权限，关闭文件后重试')
             self.exit_with_anykey()
+        except IndexError:
+            print('错误：首个工作表不是数据源')
+            self.exit_with_anykey()
 
+        print('读取科目名称及代码……')
         third_level_code = self.format_code_list(
             self.get_col_value(self.sheet_o_tb, 0, 1))  # 三级科目代码
 
@@ -159,6 +166,8 @@ class Merge():
 
         error_name_captal = ['股本/实收资本', '库存股']
         correct_name_captal = '实收资本-'
+
+        print('修改一级重码科目名称……')
 
         self.replace_err_name(
             third_level_name, correct_name_inventory, error_name_inventory)
@@ -204,6 +213,8 @@ class Merge():
         error_name_taxx = '应交税费-应交增值税-进项税额-不'
         correct_name_taxx = '-'
 
+        print('修改二级重码科目名称……')
+
         self.delete_err_name(
             third_level_name, correct_name_taxx, error_name_taxx)
 
@@ -238,7 +249,7 @@ class Merge():
             third_level_name)  # 二级科目名称
 
         first_level_name = self.g_first_level_name(third_level_name)  # 一级科目名称
-
+        print('读取试算表金额……')
         opening_balance = self.format_numbers(
             self.get_col_value(self.sheet_o_tb, 2, 1))  # 期初余额
 
@@ -250,6 +261,51 @@ class Merge():
 
         ending_balance = self.format_numbers(
             self.get_col_value(self.sheet_o_tb, 5, 1))  # 期末余额
+
+        # try:
+        #     print('打开科目余额表……')
+        #     self.workbook_r1 = xlrd.open_workbook(
+        #         self.rd1filepath[0])  # 打开科目余额明细
+        #     self.sheet_o_tb1 = self.workbook_r1.sheet_by_index(0)  # 打开工作表
+        #     print(self.sheet_o_tb1)
+
+        # except FileNotFoundError:
+        #     print('错误：未找到文件，确认后重试')
+        #     self.exit_with_anykey()
+        # except PermissionError:
+        #     print('错误：没有权限，关闭文件后重试')
+        #     self.exit_with_anykey()
+        # except IndexError:
+        #     print('错误：首个工作表不是数据源')
+        #     self.exit_with_anykey()
+        # print('读取科目余额表……')
+
+        # m_code = self.get_col_value(self.sheet_o_tb1, 2, 1)  # 明细科目代码
+
+        # m_name = self.get_col_value(self.sheet_o_tb1, 5, 1)  # 明细科目名称
+
+        # m_opening_balance = self.format_numbers(
+        #     self.get_col_value(self.sheet_o_tb1, 15, 1))  # 明细期初余额
+
+        # m_debit_amount = self.format_numbers(
+        #     self.get_col_value(self.sheet_o_tb1, 16, 1))  # 明细借方金额
+
+        # m_credit_amount = self.format_numbers(
+        #     self.get_col_value(self.sheet_o_tb1, 17, 1))  # 明细贷方金额
+
+        # m_ending_balance = self.format_numbers(
+        #     self.get_col_value(self.sheet_o_tb1, 18, 1))  # 明细期末余额
+
+        # print("创建明细科目原始DataFrame……")
+        # o_detail = pd.DataFrame({
+        #     'm_code': m_code,
+        #     'm_name': m_name,
+        #     'm_opening_balance': m_opening_balance,
+        #     'm_debit_amount': m_debit_amount,
+        #     'm_credit_amount': m_credit_amount,
+        #     'm_ending_balance': m_ending_balance
+        # })
+        print('创建一级科目原始DataFrame……')
         # 原始一级科目
         o_first_level = pd.DataFrame({
             'first_level_code': first_level_code,
@@ -260,6 +316,7 @@ class Merge():
             'ending_balance': ending_balance
         })
         # 原始二级科目
+        print('创建二级科目原始DataFrame……')
         o_second_level = pd.DataFrame({
             'second_level_code': second_level_code,
             'second_level_name': second_level_name,
@@ -269,6 +326,7 @@ class Merge():
             'ending_balance': ending_balance
         })
         # 原始三级科目
+        print('创建三级科目原始DataFrame……')
         o_third_level = pd.DataFrame({
             'third_level_code': third_level_code,
             'third_level_name': third_level_name,
@@ -281,12 +339,20 @@ class Merge():
         # 禁用pandas科学计数法
         pd.set_option('display.float_format', lambda x: '%.2f' % x)
         # 合并一级科目
+        print('Group By一级科目……')
         first_level = o_first_level.groupby(by='first_level_code').sum()
         # 合并二级科目
+        print('Group By二级科目……')
         second_level = o_second_level.groupby(by='second_level_code').sum()
         # 三级科目
+        print('转换三级科目DataFrame至矩阵……')
         third_level_matrix = np.array(
             o_third_level).reshape(len(o_third_level), 6)
+
+        # 明细科目
+        # print('转换明细科目DataFrame至矩阵……')
+        # m_detail_matrix = np.array(
+        #     o_detail).reshape(len(o_detail), 6)
 
         first_level_value = np.array(first_level).tolist()
 
@@ -308,12 +374,13 @@ class Merge():
         elif len(second_level_mcode) != len(second_level_mname):
             print('错误：存在一个科目代码对应多个科目名称的情况（二级科目），确认后重试')
             self.exit_with_anykey()
-        # np.array(c_amount).reshape(nrows_Data, 1)
+        print('合并一级科目余额……')
         first_level_matrix = np.hstack(
             (first_level_mcode, first_level_mname, first_level_value))  # 合并一级科目余额表
+        print('合并二级科目余额……')
         second_level_matrix = np.hstack(
             (second_level_mcode, second_level_mname, second_level_value))  # 合并二级科目余额表
-
+        print('合并所有级次……')
         merge_matrix = np.vstack((
             first_level_matrix, second_level_matrix, third_level_matrix))
 
@@ -337,20 +404,60 @@ class Merge():
 
         merge_list = [code, name, op_amount, de_amount, cr_amount, en_amount]
 
+        # receivables_index = [i for i, x in enumerate(
+        #     merge_list[0]) if '1122' == merge_list[0][i][:4:]]#应收下标
+        # prepaid_index = [i for i, x in enumerate(
+        #     merge_list[0]) if '1123' == merge_list[0][i][:4:]]#预付下标
+        # other_receivables=[i for i, x in enumerate(
+        #     merge_list[0]) if '1221' == merge_list[0][i][:4:]]#其他应收下标
+
+        # needed_subject=receivables_index+prepaid_index+other_receivables
+        # n_code=[]
+        # n_name=[]
+        # n_op_amount=[]
+        # n_de_amount=[]
+        # n_cr_amount=[]
+        # n_en_amount=[]
+        # for i in range(len(needed_subject)):
+        #     n_code.append(code[needed_subject[i]])
+        #     n_name.append(name[needed_subject[i]])
+        #     n_op_amount.append(op_amount[needed_subject[i]])
+        #     n_de_amount.append(de_amount[needed_subject[i]])
+        #     n_cr_amount.append(cr_amount[needed_subject[i]])
+        #     n_en_amount.append(en_amount[needed_subject[i]])
+
+        # n_merge_list=[n_code,n_name,n_op_amount,n_de_amount,n_cr_amount,n_en_amount]
+
+        print('创建输出文件……')
         workbook_w = xlwt.Workbook()  # 创建文件
 
         sheet_w = workbook_w.add_sheet(
-            '往来抵消分录', cell_overwrite_ok=True)
-
+            '科目余额表', cell_overwrite_ok=True)
+        print('写入Excel……')
         self.write_header_line(self.head_line, sheet_w)
         for i in range(6):
             self.write_list(sheet_w, len(code), i, merge_list[i])
 
         try:
-            workbook_w.save('xxx.xls')  # 保存文件
+            print('保存文件……')
+            workbook_w.save('test.xls')  # 保存文件
+            print('完成')
+            self.exit_with_anykey()
         except PermissionError:
             print('错误：文件保存失败,关闭输出文件后重试')
             self.exit_with_anykey()
+
+        # workbook = openpyxl.Workbook()
+
+        # workbook_t = workbook.active
+        # self.write_2d_list_opxl(merge_list,workbook_t)
+
+        # workbook.save('test_3.xlsx')
+
+    def write_2d_list_opxl(self, data, sheet):
+        for i in range(len(data)):
+            for j in range(len(data[i])):
+                sheet.cell(i+1, j+1, data[i][j])
 
 
 if __name__ == "__main__":

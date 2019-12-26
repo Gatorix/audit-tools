@@ -61,29 +61,29 @@
 
 
 # print(li)
-li = ['库存商品-半成品', '工程施工-差旅费-123123-444', '工程施工-行业会议', '工程施工-通信费']
-correct_name = '-'
-error_name = '工程施工-差旅费-123123-444'
+# li = ['库存商品-半成品', '工程施工-差旅费-123123-444', '工程施工-行业会议', '工程施工-通信费']
+# correct_name = '-'
+# error_name = '工程施工-差旅费-123123-444'
 # correct_name_taxx = '-'
 # error_name_taxx = ['应交税费-应交增值税-111-不']
 
 
-def findStr(string, subStr, findCnt):
-    listStr = string.split(subStr,findCnt)
-    if len(listStr) <= findCnt:
-        return -1
-    return len(string)-len(listStr[-1])-len(subStr)
+# def findStr(string, subStr, findCnt):
+#     listStr = string.split(subStr,findCnt)
+#     if len(listStr) <= findCnt:
+#         return -1
+#     return len(string)-len(listStr[-1])-len(subStr)
 
 
-def delete_err_name(li, correct_name, error_name):
-    for i in range(len(li)):
-        if li[i] == error_name:
-            li[i] = li[i][:findStr(li[i],correct_name,2):] 
-    return li
+# def delete_err_name(li, correct_name, error_name):
+#     for i in range(len(li)):
+#         if li[i] == error_name:
+#             li[i] = li[i][:findStr(li[i],correct_name,2):] 
+#     return li
 
 
-# print(li[0].index('-'))
-print(delete_err_name(li, correct_name, error_name))
+# # print(li[0].index('-'))
+# print(delete_err_name(li, correct_name, error_name))
 
 
  
@@ -92,3 +92,27 @@ print(delete_err_name(li, correct_name, error_name))
 
 # N = 2      #查找第2次出现的位置
 # # print(findStr(a,sub,N))
+
+data=[
+    [1,1,11,1,1],
+    [2,2,2,2,2,2],
+    [3,3,3,3,3,3]
+]
+
+import openpyxl
+
+workbook=openpyxl.Workbook()
+
+workbook_t=workbook.active
+
+
+def write_2d_list_opxl(data,sheet):
+    for i in range(len(data)):
+        for j in range(len(data[i])):
+            sheet.cell(i+1, j+1, data[i][j])
+
+# write_2d_list_opxl()
+
+
+
+workbook.save('test_3.xlsx')
