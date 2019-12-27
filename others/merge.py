@@ -13,11 +13,11 @@ class Merge():
     def __init__(self):
         self.rdfilepath = glob.glob(r"./*试算表*.xls*")
         self.head_line = [u'科目代码', u'科目名称', u'期初余额', u'借方金额', u'贷方金额', u'期末余额']
-        self.rd1filepath = glob.glob(r"./*科目余额表*.xls*")
+        # self.rd1filepath = glob.glob(r"./*科目余额表*.xls*")
 
     def exit_with_anykey(self):
         print("按任意键退出")
-        ord(msvcrt.getch())
+        ord(msvcrt.getch()) 
         os._exit(1)
 
     def formatXLS(self, filepath):  # 转换为xlsx格式
@@ -130,10 +130,16 @@ class Merge():
         for i in range(rows):
             sheet.write(i+1, cols, in_list[i], style)
 
+    def write_2d_list_opxl(self, data, sheet):
+        for i in range(len(data)):
+            for j in range(len(data[i])):
+                sheet.cell(i+1, j+1, data[i][j])
+
     def main_function(self):
         try:
             print('检查文件路径……')
             print('打开试算表……')
+            print(self.rdfilepath)
             self.workbook_r = xlrd.open_workbook(self.rdfilepath[0])  # 打开工作簿
             self.sheet_o_tb = self.workbook_r.sheet_by_index(0)  # 打开工作表
             print(self.sheet_o_tb)
@@ -144,9 +150,9 @@ class Merge():
         except PermissionError:
             print('错误：没有权限，关闭文件后重试')
             self.exit_with_anykey()
-        except IndexError:
-            print('错误：首个工作表不是数据源')
-            self.exit_with_anykey()
+        # except IndexError:
+        #     print('错误：首个工作表不是数据源')
+        #     self.exit_with_anykey()
 
         print('读取科目名称及代码……')
         third_level_code = self.format_code_list(
@@ -161,7 +167,7 @@ class Merge():
 
         # 一级科目名称替换
         error_name_inventory = ['原材料', '材料采购', '原材料差异',
-                                '半成品', '产成品', '发出商品-终端', '发出商品-解决方案']
+                                '半成品', '产成品', '发出商品-终端', '发出商品-解决方案', '发出商品-借货']
         correct_name_inventory = '库存商品-'
 
         error_name_captal = ['股本/实收资本', '库存股']
@@ -186,7 +192,7 @@ class Merge():
         correct_name_maintain = '-维护费'
 
         error_name_trans = ['中转科目-待付员工款', '中转科目-跨供应商付款', '中转科目-跨客户收款',
-                            '中转科目-零金额核销', '中转科目-银行购汇', '中转科目-应收退款', '中转科目-应收应付对冲']
+                            '中转科目-零金额核销', '中转科目-银行购汇', '中转科目-应收退款', '中转科目-应收应付对冲','中转科目-期初导入']
         correct_name_trans = '-中转科目'
 
         error_name_others = ['工程施工-转销售费用', '工程施工-转营业成本', '销售费用-转受托开发支出']
@@ -360,14 +366,16 @@ class Merge():
 
         first_level_mcode = np.array(self.deduplication_level_code(
             first_level_code)).reshape(len(first_level_value), 1)
+        
         second_level_mcode = np.array(self.deduplication_level_code(
             second_level_code)).reshape(len(second_level_value), 1)
 
         first_level_mname = np.array(self.deduplication_level_code(
             first_level_name)).reshape(len(first_level_value), 1)
+        
         second_level_mname = np.array(self.deduplication_level_code(
             second_level_name)).reshape(len(second_level_value), 1)
-
+        
         if len(first_level_mcode) != len(first_level_mname):
             print('错误：存在一个科目代码对应多个科目名称的情况（一级科目），确认后重试')
             self.exit_with_anykey()
@@ -440,7 +448,7 @@ class Merge():
 
         try:
             print('保存文件……')
-            workbook_w.save('test.xls')  # 保存文件
+            workbook_w.save('分级试算表.xls')  # 保存文件
             print('完成')
             self.exit_with_anykey()
         except PermissionError:
@@ -453,11 +461,6 @@ class Merge():
         # self.write_2d_list_opxl(merge_list,workbook_t)
 
         # workbook.save('test_3.xlsx')
-
-    def write_2d_list_opxl(self, data, sheet):
-        for i in range(len(data)):
-            for j in range(len(data[i])):
-                sheet.cell(i+1, j+1, data[i][j])
 
 
 if __name__ == "__main__":
