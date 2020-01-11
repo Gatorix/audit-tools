@@ -199,7 +199,7 @@ class Merge():
         correct_name_others = '-其他'
 
         error_name_otherIncome = [
-            '其他收益-软件退税', '其他收益-增值税返还', '其他收益-政府补助（本期收到）', '其他收益-政府补助（递延收益转入']
+            '其他收益-软件退税', '其他收益-个税返还','其他收益-增值税返还', '其他收益-政府补助（本期收到）', '其他收益-政府补助（递延收益转入']
         correct_name_otherIncome = '-其他收益'
 
         error_name_tax = ['税金及附加-城市维护建设费', '税金及附加-地方教育费附加', '税金及附加-房产税',
@@ -359,7 +359,7 @@ class Merge():
         # print('转换明细科目DataFrame至矩阵……')
         # m_detail_matrix = np.array(
         #     o_detail).reshape(len(o_detail), 6)
-
+        
         first_level_value = np.array(first_level).tolist()
 
         second_level_value = np.array(second_level).tolist()
