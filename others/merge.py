@@ -12,7 +12,7 @@ import openpyxl
 class Merge():
     def __init__(self):
         self.rdfilepath = glob.glob(r"./*试算表*.xls*")
-        self.head_line = [u'科目代码', u'科目名称', u'期初余额', u'借方金额', u'贷方金额', u'期末余额']
+        self.head_line = [u'科目代码', u'科目名称', u'期初余额', u'本期借方', u'本期贷方', u'期末余额']
         # self.rd1filepath = glob.glob(r"./*科目余额表*.xls*")
 
     def exit_with_anykey(self):
@@ -168,7 +168,7 @@ class Merge():
         # 一级科目名称替换
         error_name_inventory = ['原材料', '材料采购', '原材料差异',
                                 '半成品', '产成品', '发出商品-终端', '发出商品-解决方案', '发出商品-借货']
-        correct_name_inventory = '库存商品-'
+        correct_name_inventory = '存货-'
 
         error_name_captal = ['股本/实收资本', '库存股']
         correct_name_captal = '实收资本-'
